@@ -1,3 +1,3 @@
 window._env_ = {
-    API_URL: "http://localhost:5000/api/auth",
+    API_URL: "https://becognitex.lowng.me/api/auth",
 };

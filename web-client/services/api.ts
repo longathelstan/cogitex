@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = (window as any)._env_?.API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api/auth';
+const API_URL = (window as any)._env_?.API_URL || import.meta.env.VITE_API_URL || 'https://becognitex.lowng.me/api/auth';
 
 export const register = async (userData: any) => {
     const response = await axios.post(`${API_URL}/register`, userData);
