@@ -1,16 +1,38 @@
-version: '3.8'
 services:
-  mongodb:
+  mongo:
     image: mongo:latest
-    container_name: cogitex_mongo
+    container_name: cognitex-db
     restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password123}
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+
+  api-server:
+    image: ghcr.io/longathelstan/cogitex-api-server:latest
+    container_name: cognitex-api
+    restart: always
+    ports:
+      - "5000:5000"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+      PORT: 5000
+      MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-admin}:${MONGO_INITDB_ROOT_PASSWORD:-password123}@mongo:27017/cogitex?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-secret}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      - mongo
+
+  web-client:
+    image: ghcr.io/longathelstan/cogitex-web-client:latest
+    container_name: cognitex-web
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-server
 
 volumes:
   mongo_data:

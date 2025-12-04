@@ -58,19 +58,19 @@ const RiseBoard: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in pb-20">
-      
+
       {/* LEFT COLUMN: FEED */}
       <div className="lg:col-span-2 space-y-6">
-        
+
         {/* Input Box */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0 overflow-hidden">
-               <img src="https://picsum.photos/seed/user/50" alt="User" />
+              <img src="https://picsum.photos/seed/user/50" alt="User" />
             </div>
             <div className="flex-1">
-              <textarea 
-                placeholder="Share your learning reflection..." 
+              <textarea
+                placeholder="Chia sẻ suy ngẫm học tập của bạn..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none h-24 transition"
               />
               <div className="flex justify-between items-center mt-3">
@@ -78,7 +78,7 @@ const RiseBoard: React.FC = () => {
                   {/* Additional buttons could go here */}
                 </div>
                 <button className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-6 rounded-full transition shadow-md shadow-primary-200">
-                  Post
+                  Đăng
                 </button>
               </div>
             </div>
@@ -87,17 +87,17 @@ const RiseBoard: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex gap-6 border-b border-slate-200 px-2">
-          <button 
+          <button
             onClick={() => setActiveTab('feed')}
             className={`pb-3 font-semibold text-sm transition ${activeTab === 'feed' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            Community Feed
+            Bảng tin cộng đồng
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('following')}
             className={`pb-3 font-semibold text-sm transition ${activeTab === 'following' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            Following
+            Đang theo dõi
           </button>
         </div>
 
@@ -115,9 +115,9 @@ const RiseBoard: React.FC = () => {
                 </div>
                 <button className="text-slate-300 hover:text-slate-500"><MoreHorizontal size={20} /></button>
               </div>
-              
+
               <p className="text-slate-700 leading-relaxed mb-4">{post.content}</p>
-              
+
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag) => (
                   <span key={tag} className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">
@@ -134,7 +134,7 @@ const RiseBoard: React.FC = () => {
                   <MessageCircle size={18} /> {post.comments}
                 </button>
                 <button className="flex items-center gap-1 hover:text-green-500 transition">
-                  <Share2 size={18} /> Share
+                  <Share2 size={18} /> Chia sẻ
                 </button>
               </div>
             </div>
@@ -145,14 +145,14 @@ const RiseBoard: React.FC = () => {
 
       {/* RIGHT COLUMN: SIDEBAR */}
       <div className="space-y-6">
-        
+
         {/* Leaderboard Card */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-6">
             <Crown className="text-yellow-500" />
-            <h3 className="font-bold text-slate-800 text-lg">Top Scholars</h3>
+            <h3 className="font-bold text-slate-800 text-lg">Học giả hàng đầu</h3>
           </div>
-          
+
           <div className="space-y-4">
             {LEADERBOARD.map((user) => (
               <div key={user.rank} className={`flex items-center justify-between p-3 rounded-2xl ${user.isUser ? 'bg-primary-50 border border-primary-100' : 'hover:bg-slate-50'}`}>
@@ -166,24 +166,24 @@ const RiseBoard: React.FC = () => {
                   </span>
                 </div>
                 <div className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-full border border-slate-100">
-                  {user.score} pts
+                  {user.score} điểm
                 </div>
               </div>
             ))}
           </div>
-          
+
           <button className="w-full mt-4 text-center text-sm text-primary-600 font-semibold hover:underline">
-            View Full Rankings
+            Xem bảng xếp hạng đầy đủ
           </button>
         </div>
 
         {/* Badges Card */}
         <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-8 -mt-8 pointer-events-none"></div>
-          
+
           <div className="flex items-center gap-2 mb-4">
             <Award className="text-yellow-400" />
-            <h3 className="font-bold text-lg">Your Badges</h3>
+            <h3 className="font-bold text-lg">Huy hiệu của bạn</h3>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -194,7 +194,7 @@ const RiseBoard: React.FC = () => {
               </div>
             ))}
             <div className="bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center">
-              <span className="text-xs text-slate-400">+2 more</span>
+              <span className="text-xs text-slate-400">+2 thêm</span>
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ const RiseBoard: React.FC = () => {
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="text-green-500" />
-            <h3 className="font-bold text-slate-800 text-lg">Trending</h3>
+            <h3 className="font-bold text-slate-800 text-lg">Xu hướng</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {['#CriticalThinking', '#ChatGPT', '#Exams', '#FocusMode', '#Python'].map(tag => (

@@ -24,7 +24,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError('Mật khẩu không khớp');
             return;
         }
         try {
@@ -40,18 +40,18 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
             };
             onRegisterSuccess(userProfile);
         } catch (err: any) {
-            setError(err.response?.data?.msg || 'Registration failed');
+            setError(err.response?.data?.msg || 'Đăng ký thất bại');
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50">
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Register for Cognitex</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Đăng ký Cognitex</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
                 <form onSubmit={onSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Name</label>
+                        <label className="block text-sm font-medium text-slate-700">Tên</label>
                         <input
                             type="text"
                             name="name"
@@ -73,7 +73,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Password</label>
+                        <label className="block text-sm font-medium text-slate-700">Mật khẩu</label>
                         <input
                             type="password"
                             name="password"
@@ -84,7 +84,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Confirm Password</label>
+                        <label className="block text-sm font-medium text-slate-700">Xác nhận mật khẩu</label>
                         <input
                             type="password"
                             name="confirmPassword"
@@ -98,13 +98,13 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
                         type="submit"
                         className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition"
                     >
-                        Register
+                        Đăng ký
                     </button>
                 </form>
                 <p className="mt-4 text-center text-sm text-slate-600">
-                    Already have an account?{' '}
+                    Đã có tài khoản?{' '}
                     <button onClick={onSwitchToLogin} className="text-primary-600 hover:underline">
-                        Login
+                        Đăng nhập
                     </button>
                 </p>
             </div>

@@ -37,14 +37,14 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
             };
             onLoginSuccess(userProfile);
         } catch (err: any) {
-            setError(err.response?.data?.msg || 'Login failed');
+            setError(err.response?.data?.msg || 'Đăng nhập thất bại');
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50">
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Login to Cognitex</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Đăng nhập vào Cognitex</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
                 <form onSubmit={onSubmit} className="space-y-4">
                     <div>
@@ -59,7 +59,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Password</label>
+                        <label className="block text-sm font-medium text-slate-700">Mật khẩu</label>
                         <input
                             type="password"
                             name="password"
@@ -73,13 +73,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
                         type="submit"
                         className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition"
                     >
-                        Login
+                        Đăng nhập
                     </button>
                 </form>
                 <p className="mt-4 text-center text-sm text-slate-600">
-                    Don't have an account?{' '}
+                    Chưa có tài khoản?{' '}
                     <button onClick={onSwitchToRegister} className="text-primary-600 hover:underline">
-                        Register
+                        Đăng ký
                     </button>
                 </p>
             </div>
