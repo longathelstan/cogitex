@@ -8,6 +8,8 @@ import LearnPulse from './components/LearnPulse';
 import SkillQuest from './components/SkillQuest';
 import RiseBoard from './components/RiseBoard';
 import CogniAssistant from './components/CogniAssistant';
+import Login from './components/Login';
+import Register from './components/Register';
 import { AppView, UserProfile } from './types';
 import { LayoutDashboard, Brain, BarChart3, Menu, Gamepad2, Users } from 'lucide-react';
 
@@ -28,11 +30,10 @@ export const App: React.FC = () => {
         setCurrentView(view);
         setIsMobileMenuOpen(false);
       }}
-      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-        currentView === view 
-          ? 'bg-primary-50 text-primary-600 shadow-sm ring-1 ring-primary-200' 
+      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${currentView === view
+          ? 'bg-primary-50 text-primary-600 shadow-sm ring-1 ring-primary-200'
           : 'text-slate-500 hover:bg-white hover:text-slate-700'
-      }`}
+        }`}
     >
       {icon}
       <span>{label}</span>
@@ -41,7 +42,31 @@ export const App: React.FC = () => {
 
   // 1. Show Landing Page if user is not logged in and current view is HOME
   if (!user && currentView === AppView.HOME) {
-    return <LandingPage onStart={() => setCurrentView(AppView.ONBOARDING)} />;
+    return <LandingPage onStart={() => setCurrentView(AppView.LOGIN)} />;
+  }
+
+  if (!user && currentView === AppView.LOGIN) {
+    return (
+      <Login
+        onLoginSuccess={(profile) => {
+          setUser(profile);
+          setCurrentView(AppView.DASHBOARD);
+        }}
+        onSwitchToRegister={() => setCurrentView(AppView.REGISTER)}
+      />
+    );
+  }
+
+  if (!user && currentView === AppView.REGISTER) {
+    return (
+      <Register
+        onRegisterSuccess={(profile) => {
+          setUser(profile);
+          setCurrentView(AppView.ONBOARDING); // Go to onboarding after register
+        }}
+        onSwitchToLogin={() => setCurrentView(AppView.LOGIN)}
+      />
+    );
   }
 
   // 2. Show Onboarding if user is not logged in and view is ONBOARDING
@@ -52,7 +77,7 @@ export const App: React.FC = () => {
   // 3. Main App Layout
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      
+
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-30 h-16 flex items-center px-4 lg:px-8 justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView(AppView.DASHBOARD)}>
@@ -73,16 +98,16 @@ export const App: React.FC = () => {
 
         <div className="flex items-center gap-4">
           <div className="hidden lg:block text-right">
-             <p className="text-xs font-bold text-slate-700">{user.name}</p>
-             <p className="text-[10px] text-slate-400 font-medium">Level 3 Scholar</p>
+            <p className="text-xs font-bold text-slate-700">{user.name}</p>
+            <p className="text-[10px] text-slate-400 font-medium">Level 3 Scholar</p>
           </div>
-          <img 
-            src={`https://picsum.photos/seed/${user.name}/200`} 
-            alt="Profile" 
-            className="w-9 h-9 rounded-full border-2 border-white shadow-sm" 
+          <img
+            src={`https://picsum.photos/seed/${user.name}/200`}
+            alt="Profile"
+            className="w-9 h-9 rounded-full border-2 border-white shadow-sm"
           />
           <button className="lg:hidden p-2 text-slate-600" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-             <Menu size={24} />
+            <Menu size={24} />
           </button>
         </div>
       </nav>
@@ -90,11 +115,11 @@ export const App: React.FC = () => {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="fixed top-16 left-0 right-0 bg-white border-b border-slate-200 z-20 p-4 space-y-2 lg:hidden shadow-xl">
-           <NavItem view={AppView.DASHBOARD} icon={<LayoutDashboard size={18} />} label="Dashboard" />
-           <NavItem view={AppView.MIND_MIRROR} icon={<Brain size={18} />} label="Mind Mirror" />
-           <NavItem view={AppView.SKILL_QUEST} icon={<Gamepad2 size={18} />} label="Skill Quest" />
-           <NavItem view={AppView.RISE_BOARD} icon={<Users size={18} />} label="Community" />
-           <NavItem view={AppView.LEARN_PULSE} icon={<BarChart3 size={18} />} label="Analytics" />
+          <NavItem view={AppView.DASHBOARD} icon={<LayoutDashboard size={18} />} label="Dashboard" />
+          <NavItem view={AppView.MIND_MIRROR} icon={<Brain size={18} />} label="Mind Mirror" />
+          <NavItem view={AppView.SKILL_QUEST} icon={<Gamepad2 size={18} />} label="Skill Quest" />
+          <NavItem view={AppView.RISE_BOARD} icon={<Users size={18} />} label="Community" />
+          <NavItem view={AppView.LEARN_PULSE} icon={<BarChart3 size={18} />} label="Analytics" />
         </div>
       )}
 

@@ -6,7 +6,9 @@ export enum AppView {
   MIND_MIRROR = 'MIND_MIRROR',
   LEARN_PULSE = 'LEARN_PULSE',
   RISE_BOARD = 'RISE_BOARD',
-  SKILL_QUEST = 'SKILL_QUEST'
+  SKILL_QUEST = 'SKILL_QUEST',
+  LOGIN = 'LOGIN',
+  REGISTER = 'REGISTER'
 }
 
 export enum MoodType {
