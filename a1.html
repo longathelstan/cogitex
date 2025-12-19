@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Navigator - Lite</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #020617; /* Slate 950 - Deep Space */
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Glassmorphism Card style matching the reference image */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85); /* Slate 900 with opacity */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.2); /* Light Cyan border */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .option-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover, .option-btn.active {
+            background: rgba(56, 189, 248, 0.2); /* Cyan tint */
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+        }
+
+        .node-badge {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020617]">
+        <div class="w-16 h-16 border-4 border-slate-700 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+        <div class="text-cyan-400 font-bold tracking-wider animate-pulse">OPTIMIZING SYSTEM...</div>
+    </div>
+
+    <!-- UI Overlay Layer -->
+    <div class="absolute inset-0 z-10 pointer-events-none p-4 md:p-6 flex flex-col justify-between">
+        
+        <!-- Top Bar -->
+        <div class="flex justify-between items-start">
+            <!-- Left Badge: Topic -->
+            <div class="node-badge px-6 py-2 rounded-full text-white font-bold text-sm tracking-wide transform hover:scale-105 transition duration-300 cursor-pointer pointer-events-auto shadow-lg">
+                VŨ TRỤ HỌC 101
+            </div>
+
+            <!-- Right Badge: Stats -->
+            <div class="glass-card px-5 py-2 rounded-xl flex gap-6 text-xs font-semibold text-slate-300 pointer-events-auto">
+                <div class="flex flex-col items-center">
+                    <span class="text-slate-400 uppercase text-[10px]">Tiến độ</span>
+                    <span class="text-cyan-400 text-sm">3 / 10</span>
+                </div>
+                <div class="w-px bg-slate-700"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-slate-400 uppercase text-[10px]">FPS</span>
+                    <span id="fps-counter" class="text-green-400 text-sm">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR CONTROLS (Moved from Center to Left) -->
+        <div class="absolute top-1/2 left-4 md:left-8 transform -translate-y-1/2 w-full max-w-xs pointer-events-auto">
+            <div class="glass-card rounded-2xl p-1 overflow-hidden shadow-2xl">
+                <!-- Header of the card -->
+                <div class="bg-slate-800/50 px-5 py-3 flex justify-between items-center border-b border-slate-700/50">
+                    <span class="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">Dữ liệu điều khiển</span>
+                    <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse" id="tracking-dot"></div>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-4">
+                    <h2 class="text-sm font-bold text-slate-100 mb-4 leading-relaxed border-l-2 border-cyan-500 pl-3">
+                        Hệ thống điều hướng Alpha
+                    </h2>
+
+                    <!-- Options (Visualizing Hand State) -->
+                    <div class="space-y-2">
+                        <div id="status-detect" class="option-btn w-full p-3 rounded-lg flex items-center justify-between group cursor-default">
+                            <span class="text-slate-400 font-medium font-mono text-[10px] uppercase">Trạng thái</span>
+                            <span id="hand-status-text" class="text-slate-300 text-xs font-bold">Đang tìm...</span>
+                        </div>
+
+                        <div id="status-zoom" class="option-btn w-full p-3 rounded-lg flex flex-col gap-2 cursor-default">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 font-medium font-mono text-[10px] uppercase">Zoom</span>
+                                <span class="text-cyan-400 text-[10px]">Khoảng cách ngón</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                <div id="zoom-bar" class="h-full bg-cyan-500 w-0 transition-all duration-100"></div>
+                            </div>
+                        </div>
+
+                        <div id="status-speed" class="option-btn w-full p-3 rounded-lg flex items-center justify-between group cursor-default">
+                            <span class="text-slate-400 font-medium font-mono text-[10px] uppercase">Tốc độ</span>
+                            <span id="speed-text" class="text-emerald-400 text-xs font-bold">Bình thường</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Small instruction text inside card -->
+                    <div class="mt-4 pt-3 border-t border-slate-700/50 flex gap-2 items-start opacity-70">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-cyan-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-[10px] text-slate-400 leading-tight">
+                            Di chuyển tay để xoay góc nhìn.<br>Chụm ngón cái & trỏ để Zoom.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Preview (Minimized bottom right) -->
+        <div class="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-slate-700 bg-black shadow-2xl opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
+            <video id="input_video" class="w-full h-full object-cover opacity-50"></video>
+            <canvas id="output_canvas" class="absolute inset-0 w-full h-full transform -scale-x-100"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. TỐI ƯU HÓA THREE.JS (PERFORMANCE FOCUSED) ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#020617'); // Màu nền giống ảnh UI
+        // Sương mù nhẹ màu xanh đậm để tạo chiều sâu mà không nặng máy
+        scene.fog = new THREE.FogExp2(0x020617, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" }); // Tắt antialias để bớt lag
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Giới hạn pixel ratio
+        document.body.appendChild(renderer.domElement);
+
+        // --- TẠO HÌNH ẢNH GLOW GIẢ (SPRITE) ---
+        // Thay vì dùng Bloom shader nặng nề, ta dùng ảnh PNG hình đốm sáng
+        function createGlowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32; canvas.height = 32;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 1)'); // Light Blue center
+            gradient.addColorStop(0.4, 'rgba(14, 165, 233, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 32, 32);
+            const texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+        const glowTexture = createGlowTexture();
+
+        // --- HỆ THỐNG "MẠNG LƯỚI" (NODES & LINES) NHƯ ẢNH ---
+        const nodeCount = 80; // Ít hạt hơn nhưng chất lượng hơn
+        const nodeGeo = new THREE.BufferGeometry();
+        const nodePos = new Float32Array(nodeCount * 3);
+        const nodeSizes = new Float32Array(nodeCount);
+
+        for(let i=0; i<nodeCount; i++) {
+            // Phân bố hạt trong hình cầu
+            const r = 15 * Math.cbrt(Math.random());
+            const theta = Math.random() * 2 * Math.PI;
+            const phi = Math.acos(2 * Math.random() - 1);
+            
+            nodePos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            nodePos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            nodePos[i*3+2] = r * Math.cos(phi);
+
+            nodeSizes[i] = Math.random() * 0.5 + 0.2; // Kích thước ngẫu nhiên
+        }
+
+        nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3));
+        
+        // Material giả lập hành tinh phát sáng
+        const nodeMat = new THREE.PointsMaterial({
+            color: 0x38bdf8,
+            size: 1,
+            map: glowTexture,
+            transparent: true,
+            opacity: 0.9,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+
+        const nodes = new THREE.Points(nodeGeo, nodeMat);
+        scene.add(nodes);
+
+        // Thêm đường nối (Lines) tạo cảm giác kết nối như ảnh
+        // (Chỉ vẽ đường nối tĩnh để không tốn CPU tính toán mỗi frame)
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x1e40af, transparent: true, opacity: 0.3 });
+        const lineGeo = new THREE.BufferGeometry();
+        const linePos = [];
+        
+        // Nối các điểm gần nhau
+        for(let i=0; i<nodeCount; i++) {
+            for(let j=i+1; j<nodeCount; j++) {
+                const dx = nodePos[i*3] - nodePos[j*3];
+                const dy = nodePos[i*3+1] - nodePos[j*3+1];
+                const dz = nodePos[i*3+2] - nodePos[j*3+2];
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if(dist < 4) { // Chỉ nối nếu gần nhau
+                    linePos.push(nodePos[i*3], nodePos[i*3+1], nodePos[i*3+2]);
+                    linePos.push(nodePos[j*3], nodePos[j*3+1], nodePos[j*3+2]);
+                }
+            }
+        }
+        lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+        const lines = new THREE.LineSegments(lineGeo, lineMaterial);
+        scene.add(lines);
+
+        // Thêm một "Mặt trời" trung tâm
+        const sunGeo = new THREE.SpriteMaterial({ 
+            map: glowTexture, 
+            color: 0xffffff, 
+            blending: THREE.AdditiveBlending 
+        });
+        const sun = new THREE.Sprite(sunGeo);
+        sun.scale.set(8, 8, 1);
+        scene.add(sun);
+
+
+        // --- 2. LOGIC ĐIỀU KHIỂN (CẬP NHẬT UI) ---
+        let targetRotX = 0, targetRotY = 0;
+        let currRotX = 0, currRotY = 0;
+        let targetZoom = 20, currZoom = 20;
+        let rotSpeed = 0.001;
+
+        // UI Elements
+        const uiStatus = document.getElementById('hand-status-text');
+        const uiZoomBar = document.getElementById('zoom-bar');
+        const uiSpeed = document.getElementById('speed-text');
+        const uiDot = document.getElementById('tracking-dot');
+        const uiFPS = document.getElementById('fps-counter');
+
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const loading = document.getElementById('loading');
+
+        // Setup FPS counter
+        let lastTime = performance.now();
+        let frames = 0;
+
+        function onResults(results) {
+            if(loading.style.display !== 'none') loading.style.display = 'none';
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            // Không vẽ lại video lên canvas để tiết kiệm hiệu năng, chỉ vẽ khung xương
+            // canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // Vẽ khung xương đơn giản (màu xanh neon)
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#0ea5e9', lineWidth: 2});
+
+                uiDot.classList.remove('bg-red-500');
+                uiDot.classList.add('bg-green-500');
+                uiStatus.innerText = "Đã kết nối";
+                uiStatus.className = "text-cyan-400 text-xs font-bold";
+
+                // 1. ROTATION (Dựa trên vị trí cổ tay)
+                const handX = landmarks[0].x; 
+                const handY = landmarks[0].y;
+                
+                // CẬP NHẬT: Đảo ngược hướng để fix lỗi "ngược tay"
+                // Tay phải -> Camera xoay phải
+                // Tay lên -> Camera lên
+                targetRotY = (0.5 - handX) * 5; 
+                targetRotX = (0.5 - handY) * 3;
+
+                // 2. ZOOM (Khoảng cách Ngón cái - Ngón trỏ)
+                const thumb = landmarks[4];
+                const index = landmarks[8];
+                const dist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+                
+                // Visual Zoom Bar UI
+                const zoomPercent = Math.min(100, Math.max(0, (dist / 0.4) * 100));
+                uiZoomBar.style.width = `${zoomPercent}%`;
+
+                // Logic Zoom
+                const clampDist = Math.max(0, Math.min(0.4, dist));
+                targetZoom = 40 - (clampDist * 70); // 40 (xa) -> 12 (gần)
+                targetZoom = Math.max(8, Math.min(40, targetZoom));
+
+                // 3. SPEED (Nắm tay)
+                const midTip = landmarks[12];
+                const midBase = landmarks[9];
+                const fold = Math.hypot(midTip.x - midBase.x, midTip.y - midBase.y);
+                
+                if (fold < 0.1) {
+                    rotSpeed = 0.02; // Nhanh
+                    uiSpeed.innerText = "Warp Mode";
+                    uiSpeed.className = "text-red-400 text-xs font-bold animate-pulse";
+                    // Hiệu ứng visual khi warp
+                    lines.material.opacity = 0.8;
+                    lines.material.color.setHex(0xffffff);
+                } else {
+                    rotSpeed = 0.001; // Thường
+                    uiSpeed.innerText = "Normal";
+                    uiSpeed.className = "text-emerald-400 text-xs font-bold";
+                    lines.material.opacity = 0.3;
+                    lines.material.color.setHex(0x1e40af);
+                }
+
+            } else {
+                uiDot.classList.add('bg-red-500');
+                uiDot.classList.remove('bg-green-500');
+                uiStatus.innerText = "Mất tín hiệu";
+                uiStatus.className = "text-slate-500 text-xs";
+                
+                // Reset về trôi tự do
+                targetRotX *= 0.98;
+                targetRotY *= 0.98;
+            }
+            canvasCtx.restore();
+        }
+
+        // --- 3. CONFIG MEDIAPIPE LITE (QUAN TRỌNG ĐỂ FIX LAG) ---
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 0, // 0 = LITE (Siêu nhẹ), 1 = FULL
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults(onResults);
+
+        const cam = new Camera(videoElement, {
+            onFrame: async () => await hands.send({image: videoElement}),
+            width: 320, // Giảm độ phân giải đầu vào để xử lý nhanh hơn
+            height: 240
+        });
+        cam.start();
+
+        // --- 4. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // FPS Calculation
+            frames++;
+            const time = performance.now();
+            if (time - lastTime >= 1000) {
+                uiFPS.innerText = frames;
+                frames = 0;
+                lastTime = time;
+            }
+
+            // Rotate Scene
+            nodes.rotation.y += rotSpeed;
+            lines.rotation.y += rotSpeed;
+
+            // Camera Smoothing
+            currRotX += (targetRotX - currRotX) * 0.1;
+            currRotY += (targetRotY - currRotY) * 0.1;
+            currZoom += (targetZoom - currZoom) * 0.1;
+
+            // Orbit Camera Logic
+            const r = currZoom;
+            const theta = currRotY + Math.PI/2;
+            const phi = currRotX + Math.PI/2;
+            // Limit vertical look to avoid flipping
+            const safePhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+
+            camera.position.x = r * Math.sin(safePhi) * Math.cos(theta);
+            camera.position.y = r * Math.cos(safePhi);
+            camera.position.z = r * Math.sin(safePhi) * Math.sin(theta);
+            
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
